@@ -65,17 +65,27 @@ echo Done
 echo Push to GitHub...
 git push -u origin main
 if errorlevel 1 (
-    echo Try master branch...
-    git branch -M main
-    git push -u origin main
+    echo Push failed, trying to merge remote changes...
+    git pull origin main --allow-unrelated-histories
     if errorlevel 1 (
-        echo.
-        echo Push failed! Check:
-        echo 1. Network connection
-        echo 2. GitHub authentication
-        echo 3. Repository permissions
-        pause
-        exit /b 1
+        echo Pull failed, trying force push...
+        git push -u origin main --force
+        if errorlevel 1 (
+            echo.
+            echo Push failed! Check:
+            echo 1. Network connection
+            echo 2. GitHub authentication
+            echo 3. Repository permissions
+            echo.
+            echo Manual solution:
+            echo git pull origin main --allow-unrelated-histories
+            echo git push -u origin main
+            pause
+            exit /b 1
+        )
+    ) else (
+        echo Merge successful, pushing again...
+        git push -u origin main
     )
 )
 
