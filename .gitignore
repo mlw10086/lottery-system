@@ -1,26 +1,7 @@
-# System files
 .DS_Store
 Thumbs.db
-desktop.ini
-
-# Editor files
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
-
-# Log files
 *.log
-logs/
-
-# Temp files
 tmp/
-temp/
-
-# Backup files
-*.bak
-*.backup
-
-# Cache files
 cache/
