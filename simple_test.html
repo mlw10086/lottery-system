@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简化测试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        button { margin: 5px; padding: 10px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>抽奖系统简化测试</h1>
+    
+    <div class="test-section">
+        <h3>1. 测试API连接</h3>
+        <button onclick="testAPI()">测试API</button>
+        <div id="apiResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. 测试状态获取</h3>
+        <button onclick="testState()">获取状态</button>
+        <div id="stateResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. 测试抽奖流程</h3>
+        <button onclick="startPhase1()">开始第一轮</button>
+        <button onclick="completePhase1()">完成第一轮</button>
+        <button onclick="startPhase2()">开始第二轮</button>
+        <button onclick="completePhase2()">完成第二轮</button>
+        <button onclick="resetLottery()">重置</button>
+        <div id="lotteryResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. 实时监控</h3>
+        <button onclick="startMonitoring()">开始监控</button>
+        <button onclick="stopMonitoring()">停止监控</button>
+        <div id="monitorResult" class="result"></div>
+    </div>
+
+    <script>
+        let monitorInterval = null;
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const className = type === 'error' ? 'result error' : 
+                             type === 'success' ? 'result success' : 'result';
+            element.className = className;
+            element.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+        }
+
+        async function testAPI() {
+            try {
+                const response = await fetch('test.php');
+                const text = await response.text();
+                log('apiResult', `API测试成功:<br><pre>${text}</pre>`, 'success');
+            } catch (error) {
+                log('apiResult', `API测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testState() {
+            try {
+                const response = await fetch('php/state_api.php?action=get');
+                const state = await response.json();
+                log('stateResult', `状态获取成功:<br><pre>${JSON.stringify(state, null, 2)}</pre>`, 'success');
+            } catch (error) {
+                log('stateResult', `状态获取失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function callLotteryAPI(action) {
+            try {
+                const response = await fetch('php/lottery_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: action })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    log('lotteryResult', `${action} 成功:<br><pre>${JSON.stringify(result, null, 2)}</pre>`, 'success');
+                } else {
+                    log('lotteryResult', `${action} 失败: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                log('lotteryResult', `${action} 请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        function startPhase1() { callLotteryAPI('start_phase1'); }
+        function completePhase1() { callLotteryAPI('complete_phase1'); }
+        function startPhase2() { callLotteryAPI('start_phase2'); }
+        function completePhase2() { callLotteryAPI('complete_phase2'); }
+        function resetLottery() { callLotteryAPI('reset'); }
+
+        function startMonitoring() {
+            if (monitorInterval) return;
+            
+            monitorInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('php/state_api.php?action=get');
+                    const state = await response.json();
+                    
+                    const info = `
+                        当前阶段: ${state.current_phase}<br>
+                        第一轮: ${state.phase1.status}<br>
+                        第二轮: ${state.phase2.status}<br>
+                        最后更新: ${state.last_updated || '未知'}
+                    `;
+                    
+                    log('monitorResult', info, 'info');
+                } catch (error) {
+                    log('monitorResult', `监控错误: ${error.message}`, 'error');
+                }
+            }, 1000);
+        }
+
+        function stopMonitoring() {
+            if (monitorInterval) {
+                clearInterval(monitorInterval);
+                monitorInterval = null;
+                log('monitorResult', '监控已停止', 'info');
+            }
+        }
+
+        // 页面加载时自动测试
+        window.onload = function() {
+            testAPI();
+            testState();
+        };
+    </script>
+</body>
+</html>

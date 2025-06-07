@@ -1,0 +1,84 @@
+{
+  "cities": [
+    {
+      "id": 1,
+      "name": "武汉",
+      "latitude": 30.5928,
+      "longitude": 114.3055,
+      "description": "九省通衢，江城武汉",
+      "weight": 1.0
+    },
+    {
+      "id": 2,
+      "name": "香港",
+      "latitude": 22.3193,
+      "longitude": 114.1694,
+      "description": "东方之珠，国际金融中心",
+      "weight": 1.0
+    },
+    {
+      "id": 3,
+      "name": "黄山",
+      "latitude": 30.1394,
+      "longitude": 118.1558,
+      "description": "天下第一奇山，云海奇松",
+      "weight": 1.0
+    },
+    {
+      "id": 4,
+      "name": "上海",
+      "latitude": 31.2304,
+      "longitude": 121.4737,
+      "description": "国际化大都市，经济中心",
+      "weight": 1.0
+    },
+    {
+      "id": 5,
+      "name": "西安",
+      "latitude": 34.3416,
+      "longitude": 108.9398,
+      "description": "千年古都，丝路起点",
+      "weight": 1.0
+    },
+    {
+      "id": 6,
+      "name": "厦门",
+      "latitude": 24.4798,
+      "longitude": 118.0894,
+      "description": "海上花园，鹭岛风情",
+      "weight": 1.0
+    },
+    {
+      "id": 7,
+      "name": "成都",
+      "latitude": 30.5728,
+      "longitude": 104.0668,
+      "description": "天府之国，休闲之都",
+      "weight": 1.0
+    },
+    {
+      "id": 8,
+      "name": "洛阳",
+      "latitude": 34.6197,
+      "longitude": 112.454,
+      "description": "千年帝都，牡丹花城",
+      "weight": 1.0
+    },
+    {
+      "id": 9,
+      "name": "贵阳",
+      "latitude": 26.647,
+      "longitude": 106.6302,
+      "description": "爽爽贵阳，避暑之都",
+      "weight": 1.0
+    },
+    {
+      "id": 10,
+      "name": "哈尔滨",
+      "latitude": 45.8038,
+      "longitude": 126.5349,
+      "description": "冰雪之都，东方莫斯科",
+      "weight": 1.0
+    }
+  ]
+}

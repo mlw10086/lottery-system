@@ -1,0 +1,36 @@
+{
+    "current_phase": "waiting",
+    "admin_logged_in": false,
+    "phase1": {
+        "status": "pending",
+        "duration": 20,
+        "start_time": null,
+        "end_time": null,
+        "selected_cities": [],
+        "weights_history": []
+    },
+    "phase2": {
+        "status": "pending",
+        "duration": 30,
+        "start_time": null,
+        "end_time": null,
+        "selected_cities": [],
+        "weights_history": []
+    },
+    "phase3": {
+        "status": "pending",
+        "duration": 45,
+        "start_time": null,
+        "end_time": null,
+        "selected_city": null,
+        "weights_history": []
+    },
+    "final_result": {
+        "cities": [],
+        "distance": 0,
+        "within_500km": false,
+        "user_choice": null,
+        "recommended_cities": []
+    },
+    "last_updated": "2025-06-08 04:12:37"
+}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>透明城市抽奖系统</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎲 透明城市抽奖系统</h1>
+            <div class="header-controls">
+                <button id="adminBtn" class="admin-btn">管理员登录</button>
+                <div class="status-indicator">
+                    <span id="statusText">等待开始</span>
+                    <div id="statusDot" class="status-dot waiting"></div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- 管理员登录模态框 -->
+            <div id="adminModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>管理员登录</h2>
+                    <form id="adminForm">
+                        <input type="password" id="adminPassword" placeholder="请输入管理员密码" required>
+                        <button type="submit">登录</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 管理员控制面板 -->
+            <div id="adminPanel" class="admin-panel" style="display: none;">
+                <h3>🎮 管理员控制面板</h3>
+                <div class="admin-controls">
+                    <button id="startPhase1" class="control-btn primary">开始第一轮抽奖 (10→5)</button>
+                    <button id="startPhase2" class="control-btn primary" disabled>开始第二轮抽奖 (5→2)</button>
+                    <button id="startPhase3" class="control-btn primary" disabled>开始第三轮抽奖 (2→1)</button>
+                    <button id="resetLottery" class="control-btn danger">重置抽奖</button>
+                    <button id="logoutAdmin" class="control-btn secondary">退出登录</button>
+                </div>
+            </div>
+
+            <!-- 抽奖展示区域 -->
+            <div class="lottery-display">
+                <!-- 第一轮抽奖 -->
+                <section id="phase1Section" class="phase-section">
+                    <h2>🎯 第一轮抽奖：从10个城市中抽取5个</h2>
+                    <div class="timer-display">
+                        <span id="phase1Timer">20秒</span>
+                    </div>
+                    <div id="phase1Cities" class="cities-grid">
+                        <!-- 城市卡片将通过JS动态生成 -->
+                    </div>
+                    <div id="phase1Results" class="results-display" style="display: none;">
+                        <h3>第一轮抽奖结果：</h3>
+                        <div id="phase1Selected" class="selected-cities"></div>
+                    </div>
+                </section>
+
+                <!-- 第二轮抽奖 -->
+                <section id="phase2Section" class="phase-section" style="display: none;">
+                    <h2>🎲 第二轮抽奖：从5个城市中抽取2个</h2>
+                    <div class="timer-display">
+                        <span id="phase2Timer">30秒</span>
+                    </div>
+                    <div id="phase2Cities" class="cities-grid">
+                        <!-- 第一轮结果城市将显示在这里 -->
+                    </div>
+                    <div id="phase2Results" class="results-display" style="display: none;">
+                        <h3>第二轮抽奖结果：</h3>
+                        <div id="phase2Selected" class="selected-cities"></div>
+                    </div>
+                </section>
+
+                <!-- 第三轮抽奖 -->
+                <section id="phase3Section" class="phase-section" style="display: none;">
+                    <h2>🎯 第三轮抽奖：从2个城市中抽取1个</h2>
+                    <div class="timer-display">
+                        <span id="phase3Timer">45秒</span>
+                    </div>
+                    <div id="phase3Cities" class="cities-grid">
+                        <!-- 第二轮结果城市将显示在这里 -->
+                    </div>
+                    <div id="phase3Results" class="results-display" style="display: none;">
+                        <!-- 第三轮结果将显示在这里 -->
+                    </div>
+                </section>
+
+                <!-- 最终结果 -->
+                <section id="finalResult" class="phase-section" style="display: none;">
+                    <!-- 最终结果将通过JavaScript动态生成 -->
+                </section>
+
+                <section id="finalSection" class="phase-section" style="display: none;">
+                    <h2>🏆 最终结果</h2>
+                    <div id="finalResults" class="final-results">
+                        <div id="distanceInfo" class="distance-info"></div>
+                        <div id="finalChoice" class="final-choice"></div>
+                        <div id="recommendations" class="recommendations" style="display: none;"></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 权重变化展示 -->
+            <div class="weights-display">
+                <h3>📊 实时权重变化</h3>
+                <div id="weightsChart" class="weights-chart">
+                    <p>抽奖开始后将显示权重变化</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/lottery.js"></script>
+    <script src="js/viewer.js"></script>
+</body>
+</html>

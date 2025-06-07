@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>观众端权重测试</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎲 观众端权重测试</h1>
+        </header>
+
+        <main>
+            <!-- 权重显示区域 -->
+            <div class="weights-display">
+                <h3>📊 实时权重变化</h3>
+                <div id="weightsChart" class="weights-chart">
+                    <p>正在加载权重显示...</p>
+                </div>
+            </div>
+
+            <!-- 测试控制 -->
+            <div style="background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 20px; margin-top: 20px;">
+                <h3>测试控制</h3>
+                <button onclick="testWeights1()" style="margin: 5px; padding: 10px;">测试第一轮权重</button>
+                <button onclick="testWeights2()" style="margin: 5px; padding: 10px;">测试第二轮权重</button>
+                <button onclick="testWaiting()" style="margin: 5px; padding: 10px;">测试等待状态</button>
+                <button onclick="startAutoUpdate()" style="margin: 5px; padding: 10px;">开始自动更新</button>
+                <button onclick="stopAutoUpdate()" style="margin: 5px; padding: 10px;">停止自动更新</button>
+            </div>
+
+            <!-- 调试信息 -->
+            <div id="debugInfo" style="background: #f0f0f0; padding: 15px; margin-top: 20px; border-radius: 8px;">
+                <h4>调试信息</h4>
+                <div id="debugContent">等待测试...</div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/lottery.js"></script>
+    <script>
+        let testInterval = null;
+        let testViewer = null;
+
+        // 创建测试用的观众实例
+        class TestViewer {
+            constructor() {
+                this.cities = [];
+                this.loadCities();
+            }
+
+            async loadCities() {
+                try {
+                    const response = await fetch('data/cities.json');
+                    const data = await response.json();
+                    this.cities = data.cities;
+                    this.log('城市数据加载成功: ' + this.cities.length + ' 个城市');
+                } catch (error) {
+                    this.log('城市数据加载失败: ' + error.message);
+                }
+            }
+
+            updateViewerWeightsDisplay(phase = '第一轮') {
+                const weightsChart = document.getElementById('weightsChart');
+                if (!weightsChart) return;
+                
+                let weights = [];
+                if (phase === '第一轮' && this.cities) {
+                    weights = this.cities.map((city, index) => ({
+                        name: city.name,
+                        weight: Math.random() * 100,
+                        index: index
+                    }));
+                } else if (phase === '第二轮') {
+                    // 模拟第二轮的5个城市
+                    const selectedCities = this.cities.slice(0, 5);
+                    weights = selectedCities.map((city, index) => ({
+                        name: city.name,
+                        weight: Math.random() * 100,
+                        index: index
+                    }));
+                }
+                
+                if (weights.length > 0) {
+                    this.displayViewerWeightsChart(weights, weightsChart, phase);
+                    this.log('权重显示更新: ' + phase + ', ' + weights.length + ' 个城市');
+                }
+            }
+
+            displayViewerWeightsChart(weights, container, phase = '第一轮') {
+                if (!weights || weights.length === 0) return;
+
+                const totalWeight = weights.reduce((sum, item) => sum + item.weight, 0);
+
+                // 按权重大小排序（从高到低）
+                const sortedWeights = weights.map((item, originalIndex) => ({
+                    ...item,
+                    originalIndex: originalIndex
+                })).sort((a, b) => b.weight - a.weight);
+
+                container.innerHTML = `
+                    <h4>🧪 ${phase}权重分布 (测试模式 - 按概率排序)</h4>
+                    <div class="weights-bars">
+                        ${sortedWeights.map((item, sortedIndex) => {
+                            const percentage = ((item.weight / totalWeight) * 100).toFixed(1);
+                            const colorPair = this.getColorPair(item.originalIndex);
+                            const rankIcon = sortedIndex < 3 ? ['🥇', '🥈', '🥉'][sortedIndex] : `#${sortedIndex + 1}`;
+                            return `
+                                <div class="weight-item ${sortedIndex < 3 ? 'top-rank' : ''}">
+                                    <div class="weight-label">
+                                        <span class="city-name">
+                                            <span class="rank-icon">${rankIcon}</span>
+                                            ${item.name}
+                                        </span>
+                                        <span class="weight-value">${percentage}%</span>
+                                    </div>
+                                    <div class="weight-bar-container">
+                                        <div class="weight-bar-fill"
+                                             style="width: ${percentage}%;
+                                                    --bar-color: ${colorPair.main};
+                                                    --bar-color-light: ${colorPair.light};
+                                                    background: linear-gradient(90deg, ${colorPair.main}, ${colorPair.light});"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="weights-info">
+                        <small>📊 按中奖概率排序 | 🧪 测试模式 - 验证权重显示功能</small>
+                    </div>
+                `;
+            }
+
+            getColorPair(index) {
+                const colorPairs = [
+                    { main: '#667eea', light: '#764ba2' },
+                    { main: '#f093fb', light: '#f5576c' },
+                    { main: '#4facfe', light: '#00f2fe' },
+                    { main: '#43e97b', light: '#38f9d7' },
+                    { main: '#fad0c4', light: '#ffd1ff' },
+                    { main: '#a8edea', light: '#fed6e3' },
+                    { main: '#ffecd2', light: '#fcb69f' },
+                    { main: '#ff9a9e', light: '#fecfef' },
+                    { main: '#a18cd1', light: '#fbc2eb' },
+                    { main: '#fad0c4', light: '#f8ad9d' }
+                ];
+                return colorPairs[index % colorPairs.length];
+            }
+
+            showWaitingWeights() {
+                const weightsChart = document.getElementById('weightsChart');
+                if (!weightsChart) return;
+                
+                weightsChart.innerHTML = `
+                    <h4>🎲 权重分布系统 (测试)</h4>
+                    <div class="weights-info">
+                        <div style="text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 3em; margin-bottom: 15px;">⏳</div>
+                            <h3 style="color: #4a5568; margin-bottom: 10px;">测试等待状态</h3>
+                            <p style="color: #718096; margin-bottom: 20px;">点击测试按钮查看权重显示</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            log(message) {
+                const debugContent = document.getElementById('debugContent');
+                const time = new Date().toLocaleTimeString();
+                debugContent.innerHTML += `<div>[${time}] ${message}</div>`;
+                debugContent.scrollTop = debugContent.scrollHeight;
+            }
+        }
+
+        function testWeights1() {
+            if (!testViewer) testViewer = new TestViewer();
+            testViewer.updateViewerWeightsDisplay('第一轮');
+        }
+
+        function testWeights2() {
+            if (!testViewer) testViewer = new TestViewer();
+            testViewer.updateViewerWeightsDisplay('第二轮');
+        }
+
+        function testWaiting() {
+            if (!testViewer) testViewer = new TestViewer();
+            testViewer.showWaitingWeights();
+        }
+
+        function startAutoUpdate() {
+            if (testInterval) return;
+            if (!testViewer) testViewer = new TestViewer();
+            
+            testInterval = setInterval(() => {
+                const phases = ['第一轮', '第二轮'];
+                const phase = phases[Math.floor(Math.random() * phases.length)];
+                testViewer.updateViewerWeightsDisplay(phase);
+            }, 500);
+            
+            testViewer.log('开始自动更新权重');
+        }
+
+        function stopAutoUpdate() {
+            if (testInterval) {
+                clearInterval(testInterval);
+                testInterval = null;
+                if (testViewer) testViewer.log('停止自动更新权重');
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            testViewer = new TestViewer();
+            setTimeout(() => {
+                testViewer.showWaitingWeights();
+            }, 500);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽奖系统调试页面</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 抽奖系统调试页面</h1>
+        
+        <div class="status-box">
+            <h3>系统状态检查</h3>
+            <button onclick="checkPHP()">检查PHP环境</button>
+            <button onclick="checkFiles()">检查文件权限</button>
+            <button onclick="checkState()">检查抽奖状态</button>
+            <button onclick="resetState()">重置状态</button>
+        </div>
+
+        <div id="results"></div>
+
+        <div class="status-box">
+            <h3>实时状态监控</h3>
+            <button onclick="startMonitoring()">开始监控</button>
+            <button onclick="stopMonitoring()">停止监控</button>
+            <div id="monitoring" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="status-box">
+            <h3>手动测试API</h3>
+            <button onclick="testAPI('start_phase1')">测试开始第一轮</button>
+            <button onclick="testAPI('complete_phase1')">测试完成第一轮</button>
+            <button onclick="testAPI('start_phase2')">测试开始第二轮</button>
+            <button onclick="testAPI('complete_phase2')">测试完成第二轮</button>
+            <button onclick="testAPI('reset')">测试重置</button>
+        </div>
+    </div>
+
+    <script>
+        let monitoringInterval = null;
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status-box ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function checkPHP() {
+            try {
+                const response = await fetch('test.php');
+                const text = await response.text();
+                log(`PHP环境检查结果：<pre>${text}</pre>`, 'success');
+            } catch (error) {
+                log(`PHP环境检查失败：${error.message}`, 'error');
+            }
+        }
+
+        async function checkFiles() {
+            const files = [
+                'data/cities.json',
+                'data/lottery_state.json',
+                'data/nearby_cities.json',
+                'php/lottery_api.php',
+                'php/state_api.php',
+                'php/distance_api.php'
+            ];
+
+            for (const file of files) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        log(`✅ ${file} - 可访问`, 'success');
+                    } else {
+                        log(`❌ ${file} - HTTP ${response.status}`, 'error');
+                    }
+                } catch (error) {
+                    log(`❌ ${file} - ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function checkState() {
+            try {
+                const response = await fetch('php/state_api.php?action=get');
+                const state = await response.json();
+                log(`当前状态：<pre>${JSON.stringify(state, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                log(`状态检查失败：${error.message}`, 'error');
+            }
+        }
+
+        async function resetState() {
+            try {
+                const response = await fetch('php/lottery_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'reset' })
+                });
+                const result = await response.json();
+                log(`重置结果：${JSON.stringify(result, null, 2)}`, result.success ? 'success' : 'error');
+            } catch (error) {
+                log(`重置失败：${error.message}`, 'error');
+            }
+        }
+
+        async function testAPI(action) {
+            try {
+                const response = await fetch('php/lottery_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: action })
+                });
+                const result = await response.json();
+                log(`API测试 ${action}：<pre>${JSON.stringify(result, null, 2)}</pre>`, 
+                    result.success ? 'success' : 'error');
+            } catch (error) {
+                log(`API测试 ${action} 失败：${error.message}`, 'error');
+            }
+        }
+
+        function startMonitoring() {
+            if (monitoringInterval) return;
+            
+            const monitoringDiv = document.getElementById('monitoring');
+            monitoringInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('php/state_api.php?action=get');
+                    const state = await response.json();
+                    monitoringDiv.innerHTML = `
+                        <strong>实时状态：</strong><br>
+                        当前阶段：${state.current_phase}<br>
+                        第一轮：${state.phase1.status}<br>
+                        第二轮：${state.phase2.status}<br>
+                        最后更新：${state.last_updated || '未知'}
+                    `;
+                } catch (error) {
+                    monitoringDiv.innerHTML = `<span style="color: red;">监控错误：${error.message}</span>`;
+                }
+            }, 1000);
+            
+            log('开始实时监控', 'success');
+        }
+
+        function stopMonitoring() {
+            if (monitoringInterval) {
+                clearInterval(monitoringInterval);
+                monitoringInterval = null;
+                document.getElementById('monitoring').innerHTML = '监控已停止';
+                log('停止实时监控', 'info');
+            }
+        }
+
+        // 页面加载时自动检查
+        window.onload = function() {
+            log('调试页面已加载', 'info');
+            checkState();
+        };
+    </script>
+</body>
+</html>
